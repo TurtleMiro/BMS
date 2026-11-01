@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>BMS Datacenter energiebewaking</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0A0E12;--panel:#12171D;--raised:#1A2129;--line:rgba(237,239,240,.09);--line2:rgba(237,239,240,.2);--text:#EDEFF0;--mut:#8B959D;--faint:#5A636A;--copper:#D98A4A;--teal:#4FB8A8;--red:#E5484D;--ok:#5FCB8A;--onacc:#17110A;--sans:'Space Grotesk',system-ui,sans-serif;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:light){:root:not([data-theme="light"]){}:root:not([data-theme="dark"]){--bg:#F2F0EB;--panel:#FFF;--raised:#ECEAE4;--line:rgba(20,25,30,.1);--line2:rgba(20,25,30,.24);--text:#161B20;--mut:#4F5961;--faint:#8A939A;--copper:#A9581A;--teal:#14695F;--red:#BA2B31;--ok:#1B7D45;--onacc:#fff;color-scheme:light}}
+:root[data-theme="dark"]{color-scheme:dark}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans)}
+body{background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:34px 34px;background-position:-1px -1px;min-height:100vh}
+@media (prefers-reduced-motion:reduce){*{transition-duration:.001ms!important}}
+.wrap{max-width:1180px;margin:0 auto;padding:16px 16px 56px}
+h1{font-size:22px;font-weight:600;margin:0;letter-spacing:-.01em}h2{font-size:14px;font-weight:600;margin:0 0 10px}
+p{margin:0}.mut{color:var(--mut)}.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+button,input{font-family:var(--sans);font-size:14px;color:var(--text)}
+button{font-weight:500;background:var(--raised);border:1px solid var(--line2);padding:8px 14px;border-radius:4px;cursor:pointer}
+button:hover{border-color:var(--teal)}button:focus-visible,input:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+button.pri{background:var(--copper);border-color:var(--copper);color:var(--onacc);font-weight:600}
+button.on{border-color:var(--copper);color:var(--copper)}
+input{background:var(--bg);border:1px solid var(--line2);border-radius:4px;padding:10px 12px;width:100%}
+.top{display:flex;flex-wrap:wrap;gap:14px;justify-content:space-between;align-items:center;padding:6px 2px 16px;border-bottom:1px solid var(--line);margin-bottom:14px}
+.top .r{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--faint);margin-right:7px}.dot.run{background:var(--ok);box-shadow:0 0 0 3px rgba(95,203,138,.2)}
+.who{text-align:right;font-size:13px;line-height:1.3}
+nav{display:flex;gap:4px;margin-bottom:14px;overflow-x:auto;border-bottom:1px solid var(--line)}
+nav button{background:none;border:0;border-bottom:2px solid transparent;border-radius:0;padding:10px 14px;color:var(--mut);white-space:nowrap}
+nav button[aria-current="page"]{color:var(--text);border-bottom-color:var(--copper)}
+.g{display:grid;gap:12px;margin-bottom:12px}.c3{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}.c4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:16px;position:relative}
+.card.hero{display:grid;grid-template-columns:minmax(220px,.8fr) 2fr;gap:20px;align-items:center;padding:20px;border-color:var(--line2)}
+@media (max-width:760px){.card.hero{grid-template-columns:1fr}}
+.big{font-size:30px;font-weight:600;letter-spacing:-.02em;line-height:1.1;margin:6px 0}
+.num{font-family:var(--mono);font-size:26px;font-variant-numeric:tabular-nums}.num small{font-size:13px;color:var(--faint);margin-left:4px}
+.pill{font:500 12px var(--mono);padding:2px 8px;border-radius:3px;border:1px solid currentColor;white-space:nowrap}
+.ok{color:var(--ok)}.warn{color:var(--copper)}.crit{color:var(--red)}.off{color:var(--mut)}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 0;border-top:1px solid var(--line);font-size:14px}
+.row:first-of-type{border-top:0}
+.bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin:6px 0}.bar i{display:block;height:100%;background:var(--teal)}
+.bar i.warn{background:var(--copper)}.bar i.crit{background:var(--red)}
+.kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-top:10px}
+.kv div{background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:8px 10px}.kv b{display:block;font:500 17px var(--mono);margin-top:2px}.kv span{font-size:12px;color:var(--mut)}
+svg text{font-family:var(--sans)}.nd{fill:var(--panel);stroke:var(--line2);stroke-width:1.5}.nd.on{stroke:var(--teal)}.nd.bat{stroke:var(--copper)}.nd.dead{stroke-dasharray:4 3}
+.t1{fill:var(--text);font-size:13px;font-weight:600}.t2{fill:var(--mut);font-size:11.5px;font-family:var(--mono)}
+.ln{fill:none;stroke:var(--line2);stroke-width:2}.ln.on{stroke:var(--teal);stroke-width:3}.ln.bat{stroke:var(--copper);stroke-width:3}
+canvas{display:block;width:100%;height:200px}
+table{width:100%;border-collapse:collapse;font-size:13.5px}td,th{text-align:left;padding:8px 6px;border-top:1px solid var(--line)}th{color:var(--mut);font-weight:500}
+.log{font-size:13.5px}.log .row{align-items:flex-start}.log time{font-family:var(--mono);color:var(--mut);min-width:68px}
+.login{max-width:400px;margin:9vh auto 0}.login form{display:grid;gap:12px;margin-top:16px}.login label{font-size:13px;color:var(--mut);display:grid;gap:5px}
+.msg{font-size:13.5px;min-height:20px}details{margin-top:16px;font-size:13px;color:var(--mut)}details table{margin-top:8px}
+</style>
+</head>
+<body><div class="wrap" id="app"></div>
+<script>
+const $=s=>document.querySelector(s),n=(v,d=1)=>v.toFixed(d).replace('.',','),clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+const USERS={
+ beheerder:{pw:'datacenter1',name:'Datacenterbeheerder',tabs:['overzicht','batterijen','logboek'],ctl:1,mnt:0},
+ systeem:{pw:'systeem1',name:'Systeembeheerder',tabs:['overzicht','batterijen','doorvoer','logboek'],ctl:1,mnt:1},
+ monteur:{pw:'monteur1',name:'Batterijmonteur',tabs:['batterijen'],ctl:0,mnt:1}};
+const TABS={overzicht:'Overzicht',batterijen:'Batterijen',doorvoer:'Stroomdoorvoer',logboek:'Alarmen en logboek'};
+const SENS=[['UPS-ruimte','ups',32,38],['Batterijruimte','batt',28,33]];
+let S,user=null,tab='overzicht',run=true,pressed=false,fails=0,lock=0,last=Date.now(),notice='';const LOG=[];
+function log(kind,level,text){LOG.unshift({t:Date.now(),kind,level,text});if(LOG.length>120)LOG.pop()}
+function init(){S={t:0,mains:true,mV:230,hz:50,ats:'net',stab:0,down:false,coolFail:false,load:140,hist:[],alarms:{},
+ temp:{ups:24,batt:20},
+ str:[['1',96],['2',78],['3',94],['4',91]].map(([n,h])=>({n,soh:h,soc:100,temp:20,v:480,maint:false}))};}
+const rate=x=>.25*(Math.max(S.load,100)/140)*(100/x.soh);
+const disch=x=>S.ats==='none'&&!x.maint;
+function ups(){const ss=S.str.filter(x=>!x.maint),l=S.load;
+ return{kw:l,pct:l/200*100,run:ss.length?Math.min(...ss.map(x=>x.soc/rate(x)/60)):0,mode:S.ats==='none'?'accu':'net',amp:l*1000/(1.732*400*.98)}}
+function tick(){const s=S;s.t++;
+ s.load=s.down?0:138+8*Math.sin(s.t/9)+Math.random()*3;s.hist.push(s.load);if(s.hist.length>90)s.hist.shift();
+ s.mV=s.mains?230+Math.random()*1.2-.6:0;s.hz=s.mains?50+Math.random()*.06-.03:0;
+ if(!s.mains){s.stab=0;s.ats='none'}else if(s.ats==='none'&&++s.stab>=3)s.ats='net';
+ const bat=s.str.some(disch);
+ s.str.forEach(x=>{if(x.maint){x.temp+=(20-x.temp)*.05;return}
+  if(disch(x))x.soc=Math.max(0,x.soc-rate(x));else x.soc=Math.min(100,x.soc+.12);
+  x.temp+=((disch(x)?28:x.soc<100?22:20)+(s.coolFail?10:0)-x.temp)*.05+Math.random()*.06-.03;
+  x.v=420+x.soc*.6-(disch(x)?8:0)+Math.random()*.4});
+ s.down=s.ats==='none'&&s.str.every(x=>x.maint||x.soc<=0);
+ const T=s.temp;
+ T.ups+=(24+(bat?3:0)+(s.coolFail?12:0)-T.ups)*.04+Math.random()*.08-.04;T.batt+=(20+(bat?3:0)+(s.coolFail?14:0)-T.batt)*.04+Math.random()*.08-.04;
+ alarms();}
+function alarms(){const s=S,a={};
+ if(!s.mains)a.mains=['crit','Netspanning uitgevallen'];
+ if(s.ats==='none')a.accu=['warn','UPS voedt de apparatuur vanuit de accu’s'];
+ if(s.down)a.down=['crit','Accu’s leeg: aangesloten apparatuur heeft geen stroom'];
+ s.str.forEach(x=>{if(x.soh<80)a['soh'+x.n]=['warn',`Batterijstring ${x.n} aan vervanging toe (gezondheid ${x.soh}%)`];
+  if(disch(x)&&x.soc<30&&x.soc>0)a['soc'+x.n]=['crit',`Batterijstring ${x.n} bijna leeg`];
+  if(x.temp>35)a['bt'+x.n]=['crit',`Batterijstring ${x.n} te warm`]});
+ SENS.forEach(([l,k,w,c])=>{const v=s.temp[k];if(v>c)a['T'+k]=['crit',`${l} kritiek warm (${n(v)} °C)`];else if(v>w)a['T'+k]=['warn',`${l} te warm (${n(v)} °C)`]});
+ for(const k in a)if(!s.alarms[k]||s.alarms[k][0]!==a[k][0])log('alarm',a[k][0],a[k][1]);
+ for(const k in s.alarms)if(!a[k])log('alarm','ok','Hersteld: '+s.alarms[k][1]);
+ s.alarms=a;}
+const lv=(v,w,c)=>v>c?'crit':v>w?'warn':'ok';
+const bar=(p,c='')=>`<div class="bar"><i class="${c}" style="width:${clamp(p,0,100)}%"></i></div>`;
+const pill=(t,c)=>`<span class="pill ${c}">${t}</span>`;
+const hm=t=>new Date(t).toLocaleTimeString('nl-NL');
+const clock=()=>{const t=S.t;return[t/3600|0,t/60%60|0,t%60].map(v=>String(v).padStart(2,'0')).join(':')};
+function node(x,y,l,sub,st,w=130){return`<rect class="nd ${st}" x="${x}" y="${y}" width="${w}" height="56" rx="4"/><text class="t1" x="${x+12}" y="${y+23}">${l}</text><text class="t2" x="${x+12}" y="${y+42}">${sub}</text>`}
+function diagram(){const s=S,m=ups().mode==='accu';
+ return`<svg viewBox="0 0 680 130" role="img" aria-label="Stroomschema: elektriciteitsnet, UPS en aangesloten apparatuur" style="width:100%;height:auto">
+ <path class="ln ${s.mains?'on':''}" d="M138 65H270"/><path class="ln ${s.down?'':m?'bat':'on'}" d="M400 65H520"/>
+ ${node(8,37,'Elektriciteitsnet',s.mains?n(s.mV,0)+' V':'uitgevallen',s.mains?'on':'dead')}
+ ${node(270,37,'UPS',s.down?'accu leeg':m?'op accu':'online',s.down?'dead':m?'bat':'on')}
+ ${node(520,37,'Aangesloten apparatuur',s.down?'geen stroom':n(s.load,0)+' kW',s.down?'dead':'on',150)}</svg>`}
+function overzicht(){const s=S,x=ups();
+ const src=s.down?['Geen voeding','Aangesloten apparatuur heeft geen stroom','crit']:s.ats==='net'?['Elektriciteitsnet',`${n(s.mV)} V, ${n(s.hz,2)} Hz`,'ok']:['Accu’s van de UPS',`Nog circa ${n(x.run,1)} min autonomie`,'crit'];
+ const act=Object.values(s.alarms).sort((p,q)=>(q[0]==='crit')-(p[0]==='crit'));
+ const avg=s.str.reduce((t,z)=>t+z.soc,0)/4;
+ return`<div class="card hero"><div><span class="mut" style="font-size:13px">Huidige energiebron</span><div class="big ${src[2]}">${src[0]}</div><p class="mut mono" style="font-size:13px">${src[1]}</p></div>${diagram()}</div>
+ <div class="g c3"><div class="card"><div class="row" style="border:0;padding-top:0"><h2 style="margin:0">UPS</h2>${s.down?pill('Leeg','crit'):x.mode==='accu'?pill('Op accu','warn'):pill('Online','ok')}</div>
+  <div class="num">${n(x.pct,0)}<small>% belasting</small></div>${bar(x.pct,x.pct>80?'warn':'')}
+  <div class="kv"><div><span>Uitgang</span><b>${n(x.kw)} kW</b></div><div><span>Autonomie</span><b>${n(x.run,1)} min</b></div></div></div>
+  <div class="card"><h2>Temperaturen</h2>${SENS.map(([l,k,w,c])=>{const v=s.temp[k],c2=lv(v,w,c);return`<div class="row"><span>${l}</span><span class="mono ${c2==='ok'?'':c2}">${n(v)} °C ${c2==='ok'?'':'('+(c2==='crit'?'kritiek':'hoog')+')'}</span></div>`}).join('')}</div>
+  <div class="card"><h2>Batterijen</h2><div class="num">${n(avg,0)}<small>% gemiddelde lading</small></div>${bar(avg,avg<30?'crit':avg<60?'warn':'')}
+  ${s.str.map(z=>`<div class="row"><span>String ${z.n}</span><span class="mono">${n(z.soc,0)}% lading, ${z.soh}% gezond</span></div>`).join('')}</div>
+  <div class="card"><h2>Actieve alarmen (${act.length})</h2>${act.length?act.map(z=>`<div class="row"><span>${z[1]}</span>${pill(z[0]==='crit'?'Kritiek':'Waarschuwing',z[0])}</div>`).join(''):'<p class="mut">Geen actieve alarmen.</p>'}</div></div>
+ ${USERS[user].ctl?`<div class="card"><h2>Scenario’s voor de simulatie</h2><div style="display:flex;flex-wrap:wrap;gap:8px">
+  <button data-a="scn:mains" class="${s.mains?'':'on'}">${s.mains?'Netuitval veroorzaken':'Netspanning herstellen'}</button>
+  <button data-a="scn:cool" class="${s.coolFail?'on':''}">${s.coolFail?'Koeling herstellen':'Koelingsstoring veroorzaken'}</button></div></div>`:''}`}
+function batterijen(){const s=S,u=USERS[user];
+ return`<div class="g c3"><div class="card"><span class="mut" style="font-size:13px">Batterijruimte</span><div class="num ${lv(s.temp.batt,28,33)==='ok'?'':lv(s.temp.batt,28,33)}">${n(s.temp.batt)}<small>°C</small></div></div>
+ <div class="card"><span class="mut" style="font-size:13px">Voeding</span><div class="num" style="font-size:20px">${s.ats==='none'?'Accu’s ontladen':'Netvoeding actief: accu’s laden of worden op peil gehouden'}</div></div></div>
+ <div class="g c3">${s.str.map(x=>{const d=disch(x),st=x.maint?['Onderhoud','off']:d?['Ontlaadt','warn']:x.soc<100?['Laadt','ok']:['Vol (op peil gehouden)','ok'];const cap=200*x.soh/100;
+ return`<div class="card"><div class="row" style="border:0;padding-top:0"><h2 style="margin:0">String ${x.n}</h2>${pill(st[0],st[1])}</div>
+ <div class="num">${n(x.soc,0)}<small>% lading</small></div>${bar(x.soc,x.soc<30?'crit':x.soc<60?'warn':'')}
+ <div class="kv"><div><span>Gezondheid</span><b class="${x.soh<80?'warn':''}">${x.soh}%</b></div><div><span>Capaciteit</span><b>${n(cap*x.soc/100,0)} / ${n(cap,0)} Ah</b></div>
+ <div><span>Spanning</span><b>${n(x.v,0)} V</b></div><div><span>Temperatuur</span><b class="${x.temp>35?'crit':''}">${n(x.temp)} °C</b></div><div><span>Autonomie</span><b>${n(x.soc/rate(x)/60,1)} min</b></div></div>
+ ${u.mnt?`<button style="margin-top:12px" data-a="mnt:${x.n}">${x.maint?'Onderhoud beëindigen':'Onderhoud starten'}</button>`:''}</div>`}).join('')}</div>`}
+function doorvoer(){const s=S,U=ups(),out=s.load,eff=s.ats==='none'?.97:.962;
+ return`<div class="g c4">${[['Uitgangsvermogen',n(out)+' kW'],['Schijnbaar vermogen',n(out/.98)+' kVA'],['Stroom',n(U.amp,0)+' A'],['Rendement',n(eff*100)+'%'],['Belastingsgraad',n(U.pct,0)+'%']].map(([k,v])=>`<div class="card"><span class="mut" style="font-size:13px">${k}</span><div class="num" style="font-size:22px">${v}</div></div>`).join('')}</div>
+ <div class="card" style="margin-bottom:12px"><h2>Vermogen over de laatste 90 seconden (kW)</h2><canvas id="ch"></canvas></div>
+ <div class="card"><h2>UPS</h2><table><tr><th>Ingang</th><th>Uitgang</th><th>Belasting</th><th>Stroom</th></tr>
+ <tr><td class="mono">${s.ats==='none'?'0,0 kW (accu)':n(U.kw/eff)+' kW'}</td><td class="mono">${n(U.kw)} kW</td><td class="mono">${n(U.pct,0)}%</td><td class="mono">${n(U.amp,0)} A</td></tr></table></div>`}
+function logboek(){const L={crit:['Kritiek','crit'],warn:['Waarschuwing','warn'],ok:['Hersteld','ok'],info:['Info','off']};
+ const Y=['Ja','Nee'],y=v=>v?'Ja':'—';
+ return`<div class="card" style="margin-bottom:12px"><h2>Gebeurtenissen</h2><div class="log">${LOG.length?LOG.map(e=>`<div class="row"><time>${hm(e.t)}</time><span style="flex:1">${e.text}</span>${pill(e.kind==='audit'?'Toegang':L[e.level][0],e.kind==='audit'?'off':L[e.level][1])}</div>`).join(''):'<p class="mut">Nog geen gebeurtenissen.</p>'}</div></div>
+ <div class="card"><h2>Toegangsrechten per rol</h2><div style="overflow-x:auto"><table><tr><th>Rol</th>${Object.values(TABS).map(t=>`<th>${t}</th>`).join('')}<th>Simulatie bedienen</th><th>Onderhoud starten</th></tr>
+ ${Object.values(USERS).map(r=>`<tr><td>${r.name}</td>${Object.keys(TABS).map(k=>`<td>${y(r.tabs.includes(k))}</td>`).join('')}<td>${y(r.ctl)}</td><td>${y(r.mnt)}</td></tr>`).join('')}</table></div></div>`}
+function chart(){const c=$('#ch');if(!c)return;const d=devicePixelRatio||1,w=c.clientWidth,h=c.clientHeight;c.width=w*d;c.height=h*d;const x=c.getContext('2d');x.scale(d,d);
+ const st=getComputedStyle(document.documentElement),A=S.hist,lo=Math.floor(Math.min(...A,120)-4),hi=Math.ceil(Math.max(...A,160)+4),P=34;
+ x.font='11px '+st.getPropertyValue('--mono');x.fillStyle=st.getPropertyValue('--mut');x.strokeStyle=st.getPropertyValue('--line2');x.lineWidth=1;
+ for(let i=0;i<=3;i++){const yy=8+(h-24)*i/3;x.beginPath();x.moveTo(P,yy);x.lineTo(w,yy);x.stroke();x.fillText(Math.round(hi-(hi-lo)*i/3),0,yy+4)}
+ x.strokeStyle=st.getPropertyValue('--teal');x.lineWidth=2;x.beginPath();A.forEach((v,i)=>{const px=P+(w-P)*i/89,py=8+(h-24)*(1-(v-lo)/(hi-lo));i?x.lineTo(px,py):x.moveTo(px,py)});x.stroke()}
+function render(){if(!user)return;if(pressed)return;const u=USERS[user];if(!u.tabs.includes(tab))tab=u.tabs[0];
+ const V={overzicht,batterijen,doorvoer,logboek};
+ $('#app').innerHTML=`<header class="top"><div><h1>Datacenter energiebewaking</h1><p class="mut" style="font-size:13px">Simulatie van het batterij- en energiebeheersysteem</p></div>
+ <div class="r"><span class="mono" style="font-size:13px"><span class="dot ${run?'run':''}"></span>${run?'Simulatie actief':'Simulatie gestopt'}, ${clock()}</span>
+ ${u.ctl?`<button class="${run?'':'pri'}" data-a="sim">${run?'Simulatie stoppen':'Simulatie starten'}</button>`:''}
+ <div class="who"><b>${u.name}</b><br><button style="padding:2px 0;border:0;background:none;color:var(--teal)" data-a="out">Uitloggen</button></div></div></header>
+ ${u.tabs.length>1?`<nav aria-label="Weergaven">${u.tabs.map(k=>`<button data-a="tab:${k}" ${k===tab?'aria-current="page"':''}>${TABS[k]}</button>`).join('')}</nav>`:''}
+ <main>${V[tab]()}</main>`;chart()}
+function showLogin(){$('#app').innerHTML=`<div class="card login"><h1>BMS inloggen</h1><p class="mut" style="margin-top:6px;font-size:14px">Toegang tot de energiebewaking van het datacenter.</p>
+ <form id="lf" autocomplete="off"><label>Gebruikersnaam<input id="lu" required autofocus></label><label>Wachtwoord<input id="lp" type="password" required></label>
+ <div class="msg crit" id="lm" role="alert">${notice}</div><button class="pri" type="submit">Inloggen</button></form>
+ <details><summary>Demo-accounts</summary><table><tr><th>Rol</th><th>Gebruiker</th><th>Wachtwoord</th></tr>${Object.entries(USERS).map(([k,v])=>`<tr><td>${v.name}</td><td class="mono">${k}</td><td class="mono">${v.pw}</td></tr>`).join('')}</table></details></div>`;
+ $('#lf').onsubmit=e=>{e.preventDefault();const now=Date.now(),k=$('#lu').value.trim().toLowerCase(),p=$('#lp').value;
+  if(now<lock){$('#lm').textContent=`Te veel pogingen. Probeer over ${Math.ceil((lock-now)/1000)} seconden opnieuw.`;return}
+  if(USERS[k]&&USERS[k].pw===p){fails=0;user=k;tab=USERS[k].tabs[0];notice='';last=now;log('audit','info',`${USERS[k].name} ingelogd`);render()}
+  else{fails++;log('audit','warn',`Mislukte inlogpoging voor “${k.replace(/[<>&]/g,'')}”`);if(fails>=3){lock=now+30000;fails=0;$('#lm').textContent='Te veel pogingen. Het inloggen is 30 seconden geblokkeerd.'}else $('#lm').textContent=`Onjuiste gebruikersnaam of wachtwoord. Nog ${3-fails} ${3-fails===1?'poging':'pogingen'}.`;$('#lp').value=''}}}
+function logout(msg){if(user)log('audit','info',`${USERS[user].name} uitgelogd`);user=null;notice=msg||'';showLogin()}
+document.addEventListener('pointerdown',()=>{pressed=true;last=Date.now()});
+['pointerup','pointercancel'].forEach(t=>document.addEventListener(t,()=>setTimeout(()=>pressed=false,0)));
+document.addEventListener('keydown',()=>last=Date.now());
+document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b||!user)return;const[a,v]=b.dataset.a.split(':'),u=USERS[user];
+ if(a==='tab')tab=v;
+ else if(a==='out')return logout();
+ else if(a==='sim'&&u.ctl){run=!run;log('audit','info',`${u.name}: simulatie ${run?'gestart':'gestopt'}`)}
+ else if(a==='scn'&&u.ctl){if(v==='mains'){S.mains=!S.mains;log('audit','info',`${u.name}: ${S.mains?'netspanning hersteld':'netuitval veroorzaakt'}`)}
+  if(v==='cool'){S.coolFail=!S.coolFail;log('audit','info',`${u.name}: koelingsstoring ${S.coolFail?'veroorzaakt':'hersteld'}`)}}
+ else if(a==='mnt'&&u.mnt){const x=S.str.find(z=>z.n===v);x.maint=!x.maint;log('audit','info',`${u.name}: onderhoud string ${v} ${x.maint?'gestart':'beëindigd'}`)}
+ pressed=false;render()});
+setInterval(()=>{if(run)tick();if(user&&Date.now()-last>300000)return logout('Automatisch uitgelogd na 5 minuten zonder activiteit.');render()},1000);
+init();showLogin();
+</script></body></html>
